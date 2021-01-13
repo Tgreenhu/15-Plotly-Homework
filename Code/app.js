@@ -1,25 +1,27 @@
-
-
 // Function To Populate Dropdown
-// function populateDropDown () {
-//     let selection = d3.select('#selDataset');
-//     d3.json('samples.json').then((data) => {
-//         let id = data.names;
-//         id.forEach(id => {
-//             selector.append('option').text(id).property('value', id);
-//         });
-//     })
-// };
+function populateDropDown () {
+    // select where the dropdown is in the HTML
+    let selector = d3.select('#selDataset');
+    // read the data then append all sample IDs
+    d3.json('samples.json').then((data) => {
+        let id = data.names;
+        id.forEach((item) => {
+        selector.append('option').text(item).property('value', item);
+        });
+        let firstSample = id[0];
+        createGraphs(firstSample);})};
 
 // Create Graphs
-// function createGraphs(species) {
+function createGraphs(sample) {
+    // read data then create charts
     d3.json('samples.json').then(data => {
         // Save Variables
-        let samples = data.samples[0];
-        let sample_values = samples.sample_values;
-        let otu_ids = samples.otu_ids;
-        let otu_labels = samples.otu_labels;
-        let metadata = data.metadata[0];
+        let samples = data.samples;
+        let filterArray = samples.filter(item => item.id == sample);
+        let result = filterArray[0];
+        let sample_values = result.sample_values;
+        let otu_ids = result.otu_ids;
+        let otu_labels = result.otu_labels;
 
         // Set Up Bar Chart
         let trace1 = {
@@ -46,10 +48,23 @@
         Plotly.newPlot('bubble', bubbleGraphData, layout2);
 
         // Update Demographic Panel
+        let metadata = data.metadata
+        // filter the data for each id the user selects
+        let filterMeta = metadata.filter(item => item.id == sample)
+        let resultMeta = filterMeta[0]
+        // select the metadata area in the HTML
         let metaDataArea = d3.select('#sample-metadata');
+        // clear all HTML
         metaDataArea.html("");
-        Object.entries(metadata).forEach(([key, value]) => {
+        // append the metadata area with the info for correct ID
+        Object.entries(resultMeta).forEach(([key, value]) => {
             metaDataArea.append('p').text(`${key}: ${value}`);
         });
     });
-// };
+};
+// When the user changes ID, activate createGraph function for that sample
+function optionChanged(newSample) {
+    createGraphs(newSample);};
+    
+// Activate the populateDropDown function
+populateDropDown();
